@@ -1,0 +1,186 @@
+# Exercise 2: Algorithm Deconstruction Challenge - Documentation
+
+## **Explore the codebase:**
+
+### **Directory Structure Examination:**
+```
+code-algorithms/
+├── README.md
+├── python/TaskManager/          # Python implementation with algorithms
+│   ├── models.py, task_manager.py, storage.py, cli.py
+│   ├── task_list_merge.py       # NEW: Algorithm for merging task lists
+│   ├── task_parser.py           # NEW: Algorithm for parsing free-form text
+│   ├── task_priority.py         # NEW: Algorithm for priority scoring
+│   └── tests/
+├── javascript/TaskManager/      # JavaScript implementation with algorithms
+│   ├── models.js, cli.js, app.js, storage.js
+│   ├── task_list_merge.js       # NEW: Algorithm for merging task lists
+│   ├── task_parser.js           # NEW: Algorithm for parsing free-form text
+│   ├── task_priority.js         # NEW: Algorithm for priority scoring
+│   ├── package.json
+│   └── tests/
+└── java/TaskManager/            # Java implementation with algorithms
+    ├── build.gradle.kts
+    └── src/main/java/za/co/wethinkcode/taskmanager/
+        ├── model/, cli/, storage/, app/
+        ├── algorithms/          # NEW: Package for algorithm classes
+        └── tests/
+```
+
+### **Configuration Files Found:**
+- **JavaScript**: `package.json` with commander, uuid, jest dependencies (same as Exercise 1)
+- **Java**: `build.gradle.kts` with commons-cli, gson, JUnit, Mockito (same as Exercise 1)
+- **Python**: No requirements.txt (uses only standard library)
+
+### **Main Files Overview:**
+- **Core files**: Same as Exercise 1 (models, task_manager, storage, cli)
+- **NEW Algorithm files**: 
+  - `task_list_merge.py/js/java` - Merging algorithm with conflict resolution
+  - `task_parser.py/js/java` - Text parsing algorithm for natural language input
+  - `task_priority.py/js/java` - Priority scoring algorithm with multiple factors
+
+---
+
+## **Form initial understanding:**
+
+### **My Best Guess About Codebase Organization:**
+This appears to be the same Task Manager application from Exercise 1, but with additional algorithm-focused modules for more advanced functionality like merging task lists, parsing natural language text, and calculating priority scores.
+
+### **Technologies and Frameworks Identified:**
+- **Python**: Standard library with additional regex, copy modules
+- **JavaScript**: Node.js with same stack as Exercise 1
+- **Java**: Same Gradle setup as Exercise 1
+- **NEW**: Algorithm-focused modules with complex logic
+
+### **Main Components Identified:**
+- All components from Exercise 1 (Task management, CLI, storage, etc.)
+- **NEW**: Task list merging algorithm for synchronization
+- **NEW**: Natural language text parser for task creation
+- **NEW**: Priority scoring algorithm with weighted factors
+
+---
+
+## **Apply the Project Structure Prompt:**
+
+### **"Understanding Project Structure and Technology Stack" Prompt Used:**
+
+**Initial Understanding Included:**
+This appears to be an enhanced version of the Task Manager application with additional algorithmic capabilities. The core structure remains the same across three languages, but now includes specialized algorithm modules for advanced task management features.
+
+**Questions Asked:**
+1. What new algorithms have been introduced and what problems do they solve?
+2. How do the algorithm modules integrate with the existing architecture?
+3. What are the computational complexities of these new algorithms?
+4. How do the algorithm implementations differ across languages?
+5. What testing strategies are used for these algorithmic components?
+
+---
+
+## **Compare the AI's analysis with your own observations:**
+
+### **My Observations vs AI Analysis:**
+
+**✅ What I got right:**
+- Same base application as Exercise 1 ✓
+- Additional algorithm modules ✓
+- Multi-language implementation maintained ✓
+
+**📝 Additional insights from AI:**
+- **Algorithm Focus**: This exercise specifically targets **algorithm deconstruction** - understanding complex algorithms
+- **Three Key Algorithms**: 
+  1. **Merge Algorithm**: Conflict resolution for task synchronization
+  2. **Parsing Algorithm**: Natural language processing for task creation
+  3. **Scoring Algorithm**: Multi-factor priority calculation
+- **Computational Complexity**: Each algorithm has different performance characteristics
+- **Integration Patterns**: Algorithms follow the same layered architecture principles
+
+---
+
+## **Document your findings:**
+
+### **Misconceptions Recorded:**
+1. **Misconception**: Just "additional functionality"
+   - **Correction**: Specifically **algorithm-focused exercise** for deconstruction practice
+2. **Misconception**: Simple additions to existing code
+   - **Correction**: Complex algorithms with distinct computational patterns and edge cases
+3. **Misconception**: All algorithms are similar complexity
+   - **Correction**: Each algorithm solves different problem domains (merging, parsing, scoring)
+
+### **Important Entry Points Identified:**
+- **Core Application**: Same as Exercise 1
+- **NEW Algorithm Entry Points**:
+  - `task_list_merge.py` - `merge_task_lists()` function
+  - `task_parser.py` - `parse_task_from_text()` function  
+  - `task_priority.py` - `calculate_task_score()` function
+
+### **Architectural Patterns Identified:**
+- **Strategy Pattern**: Different algorithms for different tasks
+- **Algorithm Pattern**: Self-contained algorithmic modules
+- **Factory Pattern**: Algorithm result object creation
+- **Observer Pattern**: Algorithm state changes (in merge algorithm)
+- **Parser Pattern**: Text parsing with regex and state machines
+
+### **Key Components and Their Responsibilities:**
+
+#### **1. Core Application Layer** (Same as Exercise 1)
+- **Responsibility**: Basic task management operations
+- **Files**: models.py, task_manager.py, storage.py, cli.py
+- **Contains**: CRUD operations, basic filtering, file persistence
+
+#### **2. Task List Merge Algorithm**
+- **Responsibility**: Merge and synchronize task lists with conflict resolution
+- **Files**: task_list_merge.py/task_list_merge.js/TaskListMerge.java
+- **Contains**: 
+  - Conflict detection and resolution strategies
+  - Three-way merge logic
+  - Change tracking (create/update operations)
+  - Timestamp-based conflict resolution
+
+#### **3. Natural Language Parser Algorithm**
+- **Responsibility**: Parse free-form text into structured task data
+- **Files**: task_parser.py/task_parser.js/TaskParser.java
+- **Contains**:
+  - Regex-based pattern matching
+  - Priority extraction (!1, !urgent, etc.)
+  - Tag extraction (@shopping, @work)
+  - Date parsing (#tomorrow, #friday)
+  - Text normalization and validation
+
+#### **4. Priority Scoring Algorithm**
+- **Responsibility**: Calculate multi-factor priority scores for task ranking
+- **Files**: task_priority.py/task_priority.js/TaskPriority.java
+- **Contains**:
+  - Weighted scoring system
+  - Due date proximity calculations
+  - Status-based score adjustments
+  - Overdue penalties
+  - Time-based decay factors
+
+#### **5. Testing Layer** (Enhanced)
+- **Responsibility**: Algorithm validation and edge case testing
+- **Files**: Enhanced tests/ directories
+- **Contains**: 
+  - Algorithm unit tests
+  - Edge case validation
+  - Performance testing
+  - Integration tests with core application
+
+---
+
+## **Algorithm Analysis Summary:**
+
+### **Complexity Analysis:**
+- **Merge Algorithm**: O(n + m) where n,m are task list sizes
+- **Parser Algorithm**: O(k) where k is text length (regex operations)
+- **Scoring Algorithm**: O(1) per task (constant time calculations)
+
+### **Key Algorithmic Concepts:**
+- **Conflict Resolution**: Timestamp-based three-way merge
+- **Pattern Matching**: Regular expressions for text parsing
+- **Weighted Scoring**: Multi-factor priority calculation
+- **State Management**: Tracking changes during merge operations
+
+---
+
+## **Exercise Summary:**
+This exercise builds on the Task Manager foundation by introducing three distinct algorithms that demonstrate different computational patterns and problem-solving approaches. The focus is on **algorithm deconstruction** - understanding how complex algorithms work, their edge cases, performance characteristics, and integration patterns. The multi-language approach continues to showcase how the same algorithms can be implemented using different language idioms while maintaining core algorithmic principles.
