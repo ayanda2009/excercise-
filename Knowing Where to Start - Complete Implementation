@@ -1,0 +1,407 @@
+# Exercise: Knowing Where to Start - Complete Implementation
+
+## **Scenario Setup**
+I've just joined a team responsible for maintaining the Task Manager application and need to understand it quickly to start contributing. I'll be working with the Python implementation.
+
+---
+
+## **Exercise Part 1: Understanding Project Structure**
+
+### **Explore the codebase:**
+
+#### **Directory Structure Examination:**
+```
+python/TaskManager/
+├── README.md                   # Project documentation
+├── models.py                   # Data models and enums
+├── task_manager.py            # Core business logic
+├── storage.py                 # Data persistence layer
+├── cli.py                     # Command-line interface
+├── task_list_merge.py         # Algorithm for merging task lists
+├── task_parser.py             # Algorithm for parsing free-form text
+├── task_priority.py           # Algorithm for priority scoring
+└── tests/                     # Unit tests
+```
+
+#### **Configuration Files:**
+- **No requirements.txt found** - Uses Python standard library only
+- **No external configuration files** - Simple, self-contained application
+
+#### **Main Files Overview:**
+- **models.py**: Contains Task class, TaskPriority and TaskStatus enums
+- **task_manager.py**: Main TaskManager class with business logic
+- **storage.py**: TaskStorage class for JSON file persistence
+- **cli.py**: Command-line interface using argparse
+- **Algorithm files**: Specialized modules for complex operations
+
+### **Form initial understanding:**
+
+#### **My Best Guess About Codebase Organization:**
+The codebase appears to follow a layered architecture pattern:
+- **Presentation Layer**: CLI interface for user interaction
+- **Business Logic Layer**: TaskManager class coordinating operations
+- **Data Layer**: Storage class handling persistence
+- **Model Layer**: Task entity and related enums
+- **Algorithm Layer**: Specialized computational modules
+
+#### **Technologies and Frameworks:**
+- **Python 3.11+** with standard library only
+- **argparse** for CLI argument parsing
+- **json** for data persistence
+- **unittest** for testing framework
+- **datetime, uuid, re** for utilities
+
+#### **Main Components Identified:**
+- **Task Entity**: Core data model with properties and methods
+- **TaskManager**: Business logic orchestrator
+- **TaskStorage**: Data persistence manager
+- **CLI Interface**: User interaction handler
+- **Algorithm Modules**: Specialized computational logic
+
+### **Apply the Project Structure Prompt:**
+
+#### **"Understanding Project Structure and Technology Stack" Prompt Used:**
+
+**Initial Understanding Included:**
+I'm examining a Python Task Manager application that appears to follow a layered architecture. It uses only the Python standard library and includes specialized algorithm modules for task merging, text parsing, and priority scoring. The application persists data to JSON files and provides a command-line interface for user interaction.
+
+**Questions Asked:**
+1. What are the main entry points for the application?
+2. How do the algorithm modules integrate with the core TaskManager?
+3. What are the key architectural patterns being used?
+4. How is error handling structured across the layers?
+5. What are the testing strategies employed?
+
+### **Document findings:**
+
+#### **Misconceptions Recorded:**
+1. **Misconception**: Assumed simple CRUD operations only
+   - **Correction**: Complex algorithms for merging, parsing, and scoring
+2. **Misconception**: Thought all functionality was in TaskManager
+   - **Correction**: Separate algorithm modules for specialized operations
+3. **Misconception**: Assumed basic error handling
+   - **Correction**: Sophisticated error handling with validation and recovery
+
+#### **Important Entry Points Identified:**
+- **CLI Entry**: `python cli.py` → `main()` function
+- **Business Logic Entry**: `TaskManager()` class constructor and public methods
+- **Algorithm Entry**: Individual algorithm functions in separate modules
+- **Testing Entry**: `python -m unittest discover tests/`
+
+#### **Architectural Patterns Identified:**
+- **Layered Architecture**: Clear separation between presentation, business, and data layers
+- **Repository Pattern**: TaskStorage abstracts data access
+- **Command Pattern**: CLI commands follow command structure
+- **Strategy Pattern**: Different algorithms for different operations
+
+#### **Key Components and Their Responsibilities:**
+- **models.py**: Defines Task entity and business rules
+- **task_manager.py**: Orchestrates operations and coordinates between layers
+- **storage.py**: Handles data persistence and retrieval with JSON serialization
+- **cli.py**: Manages user interaction and command parsing
+- **Algorithm modules**: Provide specialized computational capabilities
+
+---
+
+## **Exercise Part 2: Finding Feature Implementation**
+
+### **Scenario:**
+Team lead asked me to add "Task Export to CSV" feature. Need to understand how similar features are implemented.
+
+### **Initial search:**
+
+#### **Search for existing export functionality:**
+```bash
+grep -r "export" . --include="*.py"
+grep -r "csv" . --include="*.py"  
+grep -r "file" . --include="*.py"
+```
+
+#### **Search for data transformation:**
+```bash
+grep -r "format" . --include="*.py"
+grep -r "transform" . --include="*.py"
+grep -r "convert" . --include="*.py"
+```
+
+#### **Files found:**
+- **cli.py**: Contains `format_task()` function for display formatting
+- **storage.py**: Contains JSON serialization/deserialization logic
+- **task_manager.py**: Contains `get_statistics()` method for data aggregation
+
+### **Form a hypothesis:**
+
+#### **Where export functionality might belong:**
+- **Primary location**: New method in TaskManager class called `export_tasks_to_csv()`
+- **Secondary location**: New command in CLI module to handle export command
+- **Utility location**: New utility module for file operations
+
+#### **Components that need modification:**
+- **task_manager.py**: Add export logic and CSV formatting
+- **cli.py**: Add export command with options (filters, output path)
+- **tests/**: Add tests for export functionality
+
+#### **Search terms used:**
+- "export", "csv", "file", "format", "transform", "convert"
+- Found relevant formatting logic in `format_task()` function
+
+### **Apply the Feature Location Prompt:**
+
+#### **"Finding Feature Implementation Locations" Prompt Used:**
+
+**Search Approach and Findings:**
+I searched for existing export, CSV, and file-related functionality. Found a `format_task()` function in cli.py that formats tasks for display, and JSON serialization logic in storage.py. The TaskManager class has a `get_statistics()` method that aggregates data, which might be useful for export functionality.
+
+**Questions Asked:**
+1. Should CSV export be a new method in TaskManager or a separate utility?
+2. How should export integrate with existing filtering mechanisms?
+3. Should export follow the same command pattern as other CLI commands?
+4. How should export handle different data formats and filtering options?
+
+### **Document findings:**
+
+#### **Implementation Location Map:**
+```
+task_manager.py
+├── export_tasks_to_csv()           # Main export logic
+├── _format_tasks_for_csv()         # CSV formatting helper
+└── _validate_export_options()      # Export validation
+
+cli.py  
+├── export command parser           # New CLI command
+├── export options handling         # Filter and format options
+└── export result display           # Success/error messages
+
+tests/
+├── test_export_functionality.py    # Export-specific tests
+└── test_export_integration.py      # Integration with existing features
+```
+
+#### **Related Components Affected:**
+- **TaskManager**: Will need new export methods
+- **CLI**: Will need new export command parser
+- **Storage**: May need helper methods for data access
+- **Models**: May need CSV serialization methods
+
+#### **Implementation Plan:**
+1. **Phase 1**: Add CSV export method to TaskManager
+2. **Phase 2**: Add CLI command for export with filtering options
+3. **Phase 3**: Add comprehensive tests
+4. **Phase 4**: Add error handling and validation
+
+---
+
+## **Exercise Part 3: Understanding Domain Model**
+
+### **Extract domain model:**
+
+#### **Core Entity Classes Identified:**
+- **Task**: Main entity with properties (id, title, description, priority, status, dates, tags)
+- **TaskPriority**: Enum (LOW=1, MEDIUM=2, HIGH=3, URGENT=4)
+- **TaskStatus**: Enum (TODO, IN_PROGRESS, REVIEW, DONE)
+
+#### **Business Logic Related to Tasks:**
+- **Task Creation**: With validation and default values
+- **Task Updates**: Status changes, priority updates, due date updates
+- **Task Completion**: Automatic timestamp setting
+- **Overdue Detection**: Based on due dates and current status
+- **Tag Management**: Adding and removing tags from tasks
+
+#### **Domain-Specific Terminology:**
+- **Overdue**: Tasks past due date that aren't completed
+- **Priority Scoring**: Multi-factor calculation for task importance
+- **Task Merging**: Combining task lists with conflict resolution
+- **Natural Language Parsing**: Converting text to structured task data
+
+### **Form initial understanding:**
+
+#### **Entity Relationship Diagram:**
+```
+Task (1) -----> (1) TaskPriority
+Task (1) -----> (1) TaskStatus  
+Task (1) -----> (*) Tag [string]
+Task (1) -----> (1) TaskManager [manages]
+Task (1) -----> (1) TaskStorage [persists]
+```
+
+#### **Entity Explanations:**
+- **Task**: Core entity representing a work item with lifecycle management
+- **TaskPriority**: Defines urgency/importance levels with numeric weights
+- **TaskStatus**: Represents workflow states from creation to completion
+- **TaskManager**: Orchestrates task operations and business rules
+- **TaskStorage**: Handles persistence and retrieval operations
+
+#### **Questions and Confusion:**
+- How are task priorities used in business logic beyond display?
+- What triggers status transitions (manual vs. automatic)?
+- How does the scoring algorithm interact with priority and due dates?
+- Are there business rules about which statuses can transition to which?
+
+### **Apply the Domain Understanding Prompt:**
+
+#### **"Understanding Domain Models and Business Concepts" Prompt Used:**
+
+**Current Understanding:**
+The Task Manager domain revolves around Tasks that have a lifecycle defined by Status enums, importance defined by Priority enums, and metadata like due dates and tags. Tasks are managed by a TaskManager and persisted by TaskStorage. There are algorithms for merging task lists, parsing natural language, and calculating priority scores.
+
+**Specific Questions:**
+1. What are the business rules for status transitions?
+2. How does priority scoring work with the priority enum?
+3. What are the conflict resolution strategies in task merging?
+4. How does the natural language parser handle ambiguous inputs?
+
+### **Test your knowledge:**
+
+#### **AI Questions and Answers:**
+- **Q**: What happens when a task is marked as "DONE"?
+- **A**: The completed_at timestamp is automatically set, and the updated_at timestamp is updated
+
+- **Q**: How does overdue detection work?
+- **A**: A task is overdue if it has a due date in the past and is not in DONE status
+
+- **Q**: What are the priority weights in the scoring algorithm?
+- **A**: LOW=1, MEDIUM=2, HIGH=4, URGENT=6 (multiplied by 10 for base score)
+
+#### **Revised Entity Diagram:**
+```
+Task (1) -----> (1) TaskPriority [enum with weights]
+Task (1) -----> (1) TaskStatus [workflow states]
+Task (1) -----> (*) Tag [string labels]
+Task (1) -----> (1) TaskManager [business rules]
+Task (1) -----> (1) TaskStorage [JSON persistence]
+Task (1) -----> (1) PriorityScore [calculated importance]
+```
+
+#### **Domain Glossary:**
+- **Task**: Work item with title, description, priority, status, due date, tags
+- **TaskPriority**: Urgency level (LOW, MEDIUM, HIGH, URGENT) with numeric weights
+- **TaskStatus**: Workflow state (TODO, IN_PROGRESS, REVIEW, DONE)
+- **Overdue**: Task past due date that is not completed
+- **Priority Score**: Calculated importance based on priority, due date, and status
+- **Task Merge**: Combining task lists with conflict resolution
+- **Natural Language Parsing**: Converting text like "Buy milk !urgent #tomorrow" to task data
+
+---
+
+## **Exercise Part 4: Practical Application**
+
+### **Scenario:**
+Implement new business rule: "Tasks that are overdue for more than 7 days should be automatically marked as abandoned unless they are marked as high priority."
+
+### **Planning:**
+
+#### **Files to Modify:**
+1. **models.py**: Add new ABANDONED status to TaskStatus enum
+2. **task_manager.py**: Add method to check and update abandoned tasks
+3. **storage.py**: Ensure JSON serialization handles new status
+4. **cli.py**: Add command to manually check/update abandoned tasks
+5. **tests/**: Add tests for abandoned task logic
+
+#### **Implementation Changes:**
+
+**models.py changes:**
+```python
+class TaskStatus(Enum):
+    TODO = "todo"
+    IN_PROGRESS = "in_progress" 
+    REVIEW = "review"
+    DONE = "done"
+    ABANDONED = "abandoned"  # New status
+```
+
+**task_manager.py changes:**
+```python
+def update_abandoned_tasks(self):
+    """Mark tasks overdue > 7 days as abandoned (except high priority)"""
+    tasks = self.storage.get_all_tasks()
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    
+    for task in tasks:
+        if (task.is_overdue() and 
+            task.due_date < seven_days_ago and 
+            task.priority != TaskPriority.HIGH and 
+            task.priority != TaskPriority.URGENT and
+            task.status != TaskStatus.DONE):
+            
+            task.status = TaskStatus.ABANDONED
+    
+    self.storage.save()
+```
+
+#### **Questions for Team:**
+1. Should abandoned tasks be automatically updated or only on command?
+2. Should there be a way to recover abandoned tasks?
+3. Should abandoned tasks be excluded from regular task lists?
+4. How should abandoned tasks appear in statistics and reports?
+5. Should there be notification when tasks become abandoned?
+
+### **Reflection:**
+
+#### **How AI Prompts Helped:**
+- **Project Structure Prompt**: Helped understand the layered architecture and where new functionality fits
+- **Feature Location Prompt**: Showed how to find similar patterns and integrate with existing code
+- **Domain Understanding Prompt**: Clarified business rules and entity relationships
+
+#### **Still Unsure About:**
+- Performance implications of abandoned task checking on large task lists
+- How to handle edge cases in abandoned task logic
+- Integration with existing filtering and reporting
+
+#### **Next Steps to Deepen Understanding:**
+1. **Run the application**: Actually execute commands to see behavior
+2. **Examine test cases**: Understand expected behavior through tests
+3. **Add logging**: Instrument code to see execution flow
+4. **Read documentation**: Check for additional documentation not yet examined
+
+---
+
+## **Final Discussion and Reflection**
+
+### **Group Discussion Points:**
+- **Approach Comparison**: Different strategies for understanding unfamiliar code
+- **Challenges**: Overcoming misconceptions and confusion
+- **Tool Usage**: How AI prompts complement traditional exploration methods
+
+### **Personal Reflection:**
+
+#### **Most Helpful Prompt:**
+The **Domain Understanding Prompt** was most valuable because it helped me understand the business logic and entity relationships, which is crucial for implementing new features correctly.
+
+#### **What I'd Do Differently:**
+- **Start with tests earlier**: Test cases provide excellent documentation of expected behavior
+- **Use more systematic search patterns**: Better search terms and strategies
+- **Create diagrams earlier**: Visual representations help solidify understanding
+
+#### **Additional Tools/Resources:**
+- **IDE navigation features**: Go to definition, find usages
+- **Static analysis tools**: Understand code structure and dependencies
+- **Debugging tools**: Step through code execution to understand flow
+- **Documentation generators**: Auto-generate API documentation
+
+---
+
+## **Submission Summary**
+
+### **Initial vs. Final Understanding:**
+**Initial**: Simple CRUD application with basic task management
+**Final**: Sophisticated system with algorithms, business rules, and layered architecture
+
+### **Most Valuable Insights:**
+- **Project Structure Prompt**: Revealed architectural patterns and component relationships
+- **Feature Location Prompt**: Showed how to integrate new functionality with existing patterns
+- **Domain Understanding Prompt**: Clarified business logic and entity relationships
+
+### **Business Rule Implementation Approach:**
+1. **Understand domain model** through entity analysis
+2. **Locate appropriate integration points** using feature location strategies  
+3. **Implement incrementally** with tests and validation
+4. **Consider edge cases** and error handling
+
+### **Strategies for Unfamiliar Code:**
+1. **Systematic exploration** over random diving
+2. **Pattern recognition** for understanding architecture
+3. **Question-driven learning** to fill knowledge gaps
+4. **Tool-assisted navigation** for efficiency
+5. **Documentation alongside exploration** for retention
+
+This exercise has provided a comprehensive framework for approaching unfamiliar codebases systematically and efficiently.
