@@ -1,0 +1,221 @@
+# Exercise 3: Knowing Where to Start - Documentation
+
+## **Exercise Information:**
+- **Name**: Knowing Where to Start
+- **Category**: Code Comprehension  
+- **Starter Code**: Same as Exercise 2 (use-cases/code-algorithms/)
+- **Focus**: Identifying entry points and understanding where to begin code analysis
+
+---
+
+## **Explore the codebase:**
+
+### **Directory Structure Examination:**
+```
+code-algorithms/ (Same as Exercise 2)
+├── README.md
+├── python/TaskManager/          
+│   ├── models.py, task_manager.py, storage.py, cli.py
+│   ├── task_list_merge.py       # Algorithm for merging task lists
+│   ├── task_parser.py           # Algorithm for parsing free-form text
+│   ├── task_priority.py         # Algorithm for priority scoring
+│   └── tests/
+├── javascript/TaskManager/      
+│   ├── models.js, cli.js, app.js, storage.js
+│   ├── task_list_merge.js       
+│   ├── task_parser.js           
+│   ├── task_priority.js         
+│   ├── package.json
+│   └── tests/
+└── java/TaskManager/            
+    ├── build.gradle.kts
+    └── src/main/java/za/co/wethinkcode/taskmanager/
+        ├── model/, cli/, storage/, app/
+        ├── algorithms/
+        └── tests/
+```
+
+### **Configuration Files Found:**
+- **JavaScript**: `package.json` with commander, uuid, jest dependencies
+- **Java**: `build.gradle.kts` with commons-cli, gson, JUnit, Mockito
+- **Python**: No requirements.txt (standard library only)
+
+### **Main Files Overview:**
+- **Core Application**: models.py/js, task_manager.py/js, storage.py/js, cli.py/js
+- **Algorithm Modules**: task_list_merge, task_parser, task_priority
+- **Testing**: Comprehensive test suites in each language
+
+---
+
+## **Form initial understanding:**
+
+### **My Best Guess About Codebase Organization:**
+This is the same Task Manager application from Exercise 2, but the focus is specifically on identifying where to start when analyzing a complex codebase. The exercise teaches how to find entry points, understand execution flow, and locate key functionality.
+
+### **Technologies and Frameworks Identified:**
+- **Python**: Standard library with regex, copy, datetime modules
+- **JavaScript**: Node.js ecosystem (commander, uuid, jest)
+- **Java**: Enterprise stack (Gradle, GSON, JUnit, Mockito)
+
+### **Main Components Identified:**
+- CLI entry points for user interaction
+- Core business logic in TaskManager classes
+- Algorithm modules for specific functionality
+- Storage layer for data persistence
+- Testing framework for validation
+
+---
+
+## **Apply the Project Structure Prompt:**
+
+### **"Understanding Project Structure and Technology Stack" Prompt Used:**
+
+**Initial Understanding Included:**
+This exercise focuses on identifying entry points and understanding code execution flow. The goal is to learn how to approach a complex codebase systematically and identify where to begin analysis for different purposes (debugging, feature addition, performance optimization).
+
+**Questions Asked:**
+1. What are the main entry points for the application?
+2. How does execution flow from CLI to business logic to storage?
+3. Which files contain the core algorithms vs. supporting code?
+4. How do you identify the most important components for different tasks?
+5. What are the key integration points between modules?
+
+---
+
+## **Compare the AI's analysis with your own observations:**
+
+### **My Observations vs AI Analysis:**
+
+**✅ What I got right:**
+- Same codebase as Exercise 2 ✓
+- Focus on entry points and execution flow ✓
+- Multi-language implementation ✓
+
+**📝 Additional insights from AI:**
+- **Entry Point Strategy**: Different entry points for different purposes (CLI vs. API vs. direct function calls)
+- **Execution Flow Patterns**: Request → Validation → Business Logic → Storage → Response
+- **Code Navigation Strategies**: How to trace code execution and find relevant sections
+- **Integration Patterns**: Understanding how modules communicate and depend on each other
+- **Debugging Entry Points**: Where to start when troubleshooting different types of issues
+
+---
+
+## **Document your findings:**
+
+### **Misconceptions Recorded:**
+1. **Misconception**: All entry points are obvious
+   - **Correction**: Multiple entry points exist (CLI, direct function calls, test cases)
+2. **Misconception**: Code execution is linear
+   - **Correction**: Complex branching with callbacks, async operations, and event-driven patterns
+3. **Misconception**: All files are equally important
+   - **Correction**: Different files have different importance based on the task at hand
+
+### **Important Entry Points Identified:**
+
+#### **Primary Application Entry Points:**
+- **Python**: `python cli.py` → `main()` function in cli.py
+- **JavaScript**: `node cli.js` → CLI setup in cli.js
+- **Java**: `gradle run` → `TaskManagerCli.main()` class
+
+#### **Algorithm Entry Points:**
+- **Merge Algorithm**: `merge_task_lists()` in task_list_merge.py
+- **Parser Algorithm**: `parse_task_from_text()` in task_parser.py  
+- **Scoring Algorithm**: `calculate_task_score()` in task_priority.py
+
+#### **Testing Entry Points:**
+- **Python**: `python -m unittest discover tests/`
+- **JavaScript**: `npm test` → Jest test runner
+- **Java**: `gradle test` → JUnit test execution
+
+#### **Business Logic Entry Points:**
+- **TaskManager Class**: Constructor and public methods
+- **Storage Class**: CRUD operations and data access methods
+- **Model Classes**: Task creation and manipulation methods
+
+### **Execution Flow Patterns Identified:**
+
+#### **CLI Command Flow:**
+```
+CLI Input → Argument Parsing → Validation → TaskManager Method → Storage Operation → Response
+```
+
+#### **Algorithm Flow:**
+```
+Input Data → Algorithm Processing → Result Generation → Integration Point
+```
+
+#### **Data Flow:**
+```
+User Input → Parser → Task Object → Storage → JSON File → Retrieval → Display
+```
+
+### **Architectural Patterns Identified:**
+- **Entry Point Pattern**: Clear separation between public interfaces and internal implementation
+- **Flow Control Pattern**: Consistent request-response patterns across all operations
+- **Integration Pattern**: Well-defined interfaces between layers
+- **Error Handling Pattern**: Consistent error propagation and handling
+- **Configuration Pattern**: External configuration for different environments
+
+### **Key Components and Their Starting Points:**
+
+#### **1. CLI Layer - Starting Point: main() functions**
+- **Responsibility**: User interface and command parsing
+- **Entry Points**: 
+  - Python: `main()` in cli.py (line ~34)
+  - JavaScript: CLI setup in cli.js (line ~2)
+  - Java: `TaskManagerCli.main()` method
+- **Flow**: Parse arguments → Validate → Route to appropriate handler
+
+#### **2. Business Logic Layer - Starting Point: TaskManager class**
+- **Responsibility**: Core operations and orchestration
+- **Entry Points**: Public methods in TaskManager class
+- **Key Methods**: `create_task()`, `list_tasks()`, `update_task_status()`
+- **Flow**: Input validation → Business rules → Storage operations
+
+#### **3. Algorithm Layer - Starting Point: Algorithm functions**
+- **Responsibility**: Specialized computational tasks
+- **Entry Points**: Main algorithm functions in each module
+- **Flow**: Input preprocessing → Algorithm execution → Result formatting
+
+#### **4. Storage Layer - Starting Point: TaskStorage class**
+- **Responsibility**: Data persistence and retrieval
+- **Entry Points**: CRUD methods in TaskStorage class
+- **Flow**: Data validation → File operations → Error handling
+
+#### **5. Testing Layer - Starting Point: Test classes**
+- **Responsibility**: Quality assurance and validation
+- **Entry Points**: Test methods in test files
+- **Flow**: Setup → Execute → Assert → Cleanup
+
+---
+
+## **Code Navigation Strategies:**
+
+### **For Feature Development:**
+1. Start with CLI entry point
+2. Follow command to business logic
+3. Identify storage requirements
+4. Add tests for new functionality
+
+### **For Debugging:**
+1. Start with error location
+2. Trace execution backwards
+3. Check data flow and transformations
+4. Verify storage operations
+
+### **For Performance Optimization:**
+1. Identify bottlenecks through profiling
+2. Focus on algorithm modules first
+3. Check storage operations
+4. Optimize data structures
+
+### **For Code Review:**
+1. Start with entry points and public interfaces
+2. Review business logic implementation
+3. Check error handling and edge cases
+4. Verify test coverage
+
+---
+
+## **Exercise Summary:**
+This exercise teaches the critical skill of **knowing where to start** when approaching a complex codebase. By systematically identifying entry points, understanding execution flow, and recognizing different navigation strategies for different tasks, developers can efficiently analyze and work with unfamiliar code. The multi-language Task Manager provides a rich environment for practicing these skills across different technology stacks while maintaining consistent architectural principles.
