@@ -1,0 +1,963 @@
+# Exercise: Using AI to Help with Testing - Complete Implementation
+
+## **Overview**
+I'll practice using AI to improve testing skills using the Task Manager's task prioritization algorithm, applying strategies for behavior analysis, test planning, test improvement, TDD practice, and integration testing.
+
+---
+
+## **Selected Implementation: Python Task Manager**
+
+I've chosen the **Python implementation** of the task prioritization algorithm because it clearly demonstrates the scoring logic and has well-defined functions for testing.
+
+### **Selected Functions:**
+
+```python
+def calculate_task_score(task):
+    """Calculate a priority score for a task based on multiple factors."""
+    # Base priority weights
+    priority_weights = {
+        TaskPriority.LOW: 1,
+        TaskPriority.MEDIUM: 2,
+        TaskPriority.HIGH: 4,
+        TaskPriority.URGENT: 6
+    }
+
+    # Calculate base score from priority
+    score = priority_weights.get(task.priority, 0) * 10
+
+    # Add due date factor (higher score for tasks due sooner)
+    if task.due_date:
+        days_until_due = (task.due_date - datetime.now()).days
+        if days_until_due < 0:  # Overdue tasks
+            score += 35
+        elif days_until_due == 0:  # Due today
+            score += 20
+        elif days_until_due <= 2:  # Due in next 2 days
+            score += 15
+        elif days_until_due <= 7:  # Due in next week
+            score += 10
+
+    # Reduce score for tasks that are completed or in review
+    if task.status == TaskStatus.DONE:
+        score -= 50
+    elif task.status == TaskStatus.REVIEW:
+        score -= 15
+
+    # Boost score for tasks with certain tags
+    if any(tag in ["blocker", "critical", "urgent"] for tag in task.tags):
+        score += 8
+
+    # Boost score for recently updated tasks
+    days_since_update = (datetime.now() - task.updated_at).days
+    if days_since_update < 1:
+        score += 5
+
+    return score
+
+def sort_tasks_by_importance(tasks):
+    """Sort tasks by calculated importance score (highest first)."""
+    # Calculate scores once and sort by the score
+    task_scores = [(calculate_task_score(task), task) for task in tasks]
+    sorted_tasks = [task for _, task in sorted(task_scores, reverse=True)]
+    return sorted_tasks
+
+def get_top_priority_tasks(tasks, limit=5):
+    """Return the top N priority tasks."""
+    sorted_tasks = sort_tasks_by_importance(tasks)
+    return sorted_tasks[:limit]
+```
+
+---
+
+## **Part 1: Understanding What to Test**
+
+### **Exercise 1.1: Behavior Analysis**
+
+### **AI Prompt Applied:**
+
+"I'm learning how to test this function, and I want to understand what behaviors I should test:
+
+```python
+def calculate_task_score(task):
+    """Calculate a priority score for a task based on multiple factors."""
+    # Base priority weights
+    priority_weights = {
+        TaskPriority.LOW: 1,
+        TaskPriority.MEDIUM: 2,
+        TaskPriority.HIGH: 4,
+        TaskPriority.URGENT: 6
+    }
+
+    # Calculate base score from priority
+    score = priority_weights.get(task.priority, 0) * 10
+
+    # Add due date factor (higher score for tasks due sooner)
+    if task.due_date:
+        days_until_due = (task.due_date - datetime.now()).days
+        if days_until_due < 0:  # Overdue tasks
+            score += 35
+        elif days_until_due == 0:  # Due today
+            score += 20
+        elif days_until_due <= 2:  # Due in next 2 days
+            score += 15
+        elif days_until_due <= 7:  # Due in next week
+            score += 10
+
+    # Reduce score for tasks that are completed or in review
+    if task.status == TaskStatus.DONE:
+        score -= 50
+    elif task.status == TaskStatus.REVIEW:
+        score -= 15
+
+    # Boost score for tasks with certain tags
+    if any(tag in ["blocker", "critical", "urgent"] for tag in task.tags):
+        score += 8
+
+    # Boost score for recently updated tasks
+    days_since_update = (datetime.now() - task.updated_at).days
+    if days_since_update < 1:
+        score += 5
+
+    return score
+```
+
+Rather than generating tests for me, please:
+1. Ask me questions about what I think this function does
+2. After I answer, help identify any behaviors I missed
+3. Ask me what edge cases I think should be tested
+4. Help me identify additional edge cases I didn't think of
+5. Ask me which test I should write first and why"
+
+### **AI Conversation and Analysis:**
+
+**AI**: What do you think this function does at a high level?
+
+**Me**: It calculates a priority score for tasks based on multiple factors like priority level, due date, status, tags, and recent updates. The higher the score, the more important the task.
+
+**AI**: Good! What specific factors does it consider, and how do they affect the score?
+
+**Me**: It considers:
+1. Base priority (LOW=10, MEDIUM=20, HIGH=40, URGENT=60 points)
+2. Due date (overdue=+35, due today=+20, due in 2 days=+15, due in week=+10)
+3. Status (DONE=-50, REVIEW=-15)
+4. Special tags (blocker/critical/urgent=+8)
+5. Recent updates (updated within 24h=+5)
+
+**AI**: Excellent! You've identified the main factors. Did you notice what happens with unknown priority levels?
+
+**Me**: Hmm, I see it uses `priority_weights.get(task.priority, 0)` so unknown priorities get 0 points.
+
+**AI**: Exactly! What edge cases do you think should be tested?
+
+**Me**: I should test:
+- Tasks with no due date
+- Tasks with unknown priority
+- Tasks with no tags
+- Tasks that are both overdue and completed
+- Tasks updated exactly 24 hours ago
+
+**AI**: Those are good! What about these additional edge cases:
+- Tasks with multiple special tags
+- Tasks with negative scores (completed high-priority tasks)
+- Tasks with due dates exactly at the boundaries (2 days, 7 days)
+- Tasks with future due dates
+- Tasks with empty tag lists
+- Tasks with whitespace in tags
+
+**Me**: Oh, I didn't think about the boundary conditions and multiple tags. Those are important!
+
+**AI**: Which test should you write first and why?
+
+**Me**: I think I should start with the basic priority scoring since it's the foundation - just test that LOW priority gives 10 points, MEDIUM gives 20, etc.
+
+**AI**: Great choice! Testing the basic functionality first gives you confidence before moving to more complex interactions.
+
+### **Test Cases Identified:**
+
+1. **Basic Priority Scoring**: LOW=10, MEDIUM=20, HIGH=40, URGENT=60 points
+2. **Unknown Priority**: Returns 0 points for unknown priority levels
+3. **No Due Date**: Handles tasks without due dates correctly
+4. **Due Date Boundaries**: Exactly 2 days, exactly 7 days, future dates
+5. **Status Penalties**: DONE=-50, REVIEW=-15, TODO/IN_PROGRESS=0
+6. **Special Tags**: Single and multiple special tags
+7. **Recent Updates**: Within 24h vs older updates
+8. **Combined Factors**: Multiple scoring factors working together
+9. **Negative Scores**: Completed high-priority tasks
+10. **Edge Cases**: Empty tags, whitespace tags, boundary conditions
+
+---
+
+### **Exercise 1.2: Test Planning**
+
+### **AI Prompt Applied:**
+
+"I'm learning to write tests for these related functions:
+
+```python
+def calculate_task_score(task):
+    # [function code as above]
+
+def sort_tasks_by_importance(tasks):
+    """Sort tasks by calculated importance score (highest first)."""
+    # Calculate scores once and sort by the score
+    task_scores = [(calculate_task_score(task), task) for task in tasks]
+    sorted_tasks = [task for _, task in sorted(task_scores, reverse=True)]
+    return sorted_tasks
+
+def get_top_priority_tasks(tasks, limit=5):
+    """Return the top N priority tasks."""
+    sorted_tasks = sort_tasks_by_importance(tasks)
+    return sorted_tasks[:limit]
+```
+
+Instead of writing tests for me, please:
+1. Help me create a testing plan by asking me questions
+2. For each behavior I identify, ask me how I would test it
+3. If I miss something important, give me hints rather than answers
+4. For each edge case we identify, ask me what I expect to happen
+5. Help me create a checklist of tests I should write, organized by priority"
+
+### **AI Conversation and Test Plan:**
+
+**AI**: What's the relationship between these three functions?
+
+**Me**: `calculate_task_score` is the core scoring logic, `sort_tasks_by_importance` uses the scoring to sort tasks, and `get_top_priority_tasks` uses the sorting to return the top N tasks.
+
+**AI**: Good! How would you test the scoring function?
+
+**Me**: I'd test each scoring factor individually and then combinations.
+
+**AI**: How would you test the sorting function?
+
+**Me**: I'd create tasks with different scores and verify they sort correctly.
+
+**AI**: What about the top priority function?
+
+**Me**: I'd test that it returns the correct number of tasks and they're the highest scoring ones.
+
+**AI**: What happens if you have fewer tasks than the limit?
+
+**Me**: It should return all available tasks.
+
+**AI**: What if you have tasks with the same score?
+
+**Me**: Hmm, I should test that the sorting is stable or at least consistent.
+
+**AI**: Excellent thinking! What about testing the interactions between functions?
+
+**Me**: I should test that a change in scoring affects the sorting and top tasks selection.
+
+### **Structured Test Plan Document:**
+
+```markdown
+# Task Priority System Test Plan
+
+## Priority 1: Core Functionality Tests
+
+### calculate_task_score Unit Tests
+- [ ] Basic priority scoring (LOW, MEDIUM, HIGH, URGENT)
+- [ ] Unknown priority handling (returns 0)
+- [ ] No due date handling
+- [ ] Due date boundary conditions (overdue, today, 2 days, 7 days, future)
+- [ ] Status penalties (DONE, REVIEW, TODO, IN_PROGRESS)
+- [ ] Special tag handling (single, multiple, none)
+- [ ] Recent update handling (within 24h, older)
+- [ ] Combined scoring factors
+
+### sort_tasks_by_importance Unit Tests
+- [ ] Empty list handling
+- [ ] Single task handling
+- [ ] Multiple tasks with different scores
+- [ ] Tasks with same scores (stability)
+- [ ] Descending order verification
+
+### get_top_priority_tasks Unit Tests
+- [ ] Limit less than available tasks
+- [ ] Limit equals available tasks
+- [ ] Limit greater than available tasks
+- [ ] Limit of 1 (highest priority task)
+- [ ] Limit of 0 (empty result)
+
+## Priority 2: Integration Tests
+
+### Workflow Integration Tests
+- [ ] Score change affects sorting
+- [ ] Sorting affects top tasks selection
+- [ ] End-to-end workflow with realistic data
+- [ ] Performance with large task lists
+
+## Priority 3: Edge Case Tests
+
+### Robustness Tests
+- [ ] Invalid task objects
+- [ ] Missing required attributes
+- [ ] Extreme date values
+- [ ] Very large task lists
+- [ ] Memory usage verification
+
+## Test Dependencies
+
+- Test data fixtures for different task scenarios
+- Mock datetime for consistent testing
+- Test utilities for task creation
+
+## Expected Outcomes
+
+- All unit tests pass independently
+- Integration tests verify correct function interaction
+- Edge cases are handled gracefully
+- Performance meets requirements
+```
+
+---
+
+## **Part 2: Improving a Single Test**
+
+### **Exercise 2.1: Writing Your First Test**
+
+### **Initial Simple Test:**
+
+```python
+def test_basic_priority_scoring():
+    task = Task("Test Task", TaskPriority.HIGH)
+    score = calculate_task_score(task)
+    assert score == 40
+```
+
+### **AI Prompt Applied:**
+
+"I wrote this test for the following function:
+
+Function:
+```python
+def calculate_task_score(task):
+    # [function code]
+```
+
+My test:
+```python
+def test_basic_priority_scoring():
+    task = Task("Test Task", TaskPriority.HIGH)
+    score = calculate_task_score(task)
+    assert score == 40
+```
+
+Instead of rewriting it for me, please:
+1. Ask me questions about what my test is trying to verify
+2. Help me identify if my test is checking behavior or implementation details
+3. Suggest how I could make the test's purpose clearer
+4. Ask me what edge cases my test might be missing
+5. Guide me in improving my assertions to be more precise"
+
+### **AI Conversation and Test Improvement:**
+
+**AI**: What exactly is your test trying to verify?
+
+**Me**: That a HIGH priority task gets 40 points.
+
+**AI**: Good! Are you testing behavior or implementation details?
+
+**Me**: I think I'm testing behavior - the expected score for HIGH priority.
+
+**AI**: Right! How could you make the test's purpose clearer?
+
+**Me**: I could add a more descriptive test name and comments explaining what's being tested.
+
+**AI**: What edge cases might your test be missing?
+
+**Me**: I'm only testing HIGH priority. I should test other priorities and maybe tasks with no due date or other attributes.
+
+**AI**: How could you make your assertions more precise?
+
+**Me**: I could test that the score is exactly 40 and not just that it equals 40, maybe check that it's an integer.
+
+### **Improved Test:**
+
+```python
+def test_high_priority_task_scores_correctly():
+    """
+    Test that HIGH priority tasks receive the correct base score of 40 points.
+    This tests the basic priority scoring behavior without other factors.
+    """
+    # Arrange
+    task = Task("Test Task", TaskPriority.HIGH)
+    
+    # Act
+    score = calculate_task_score(task)
+    
+    # Assert
+    assert isinstance(score, int), "Score should be an integer"
+    assert score == 40, f"Expected HIGH priority to score 40, got {score}"
+    assert score > 0, "Score should be positive for valid priority"
+```
+
+---
+
+### **Exercise 2.2: Learning From Examples**
+
+### **AI Prompt Applied:**
+
+"I'm trying to understand how to better test the due date calculation portion of this function:
+
+```python
+def calculate_task_score(task):
+    # [function code]
+```
+
+I'm thinking of writing a test like this (pseudocode):
+```
+test overdue task gets bonus:
+  create task with due date yesterday
+  check score has +35
+```
+
+Please:
+1. Explain the principles of a good test for this specific functionality
+2. Show me ONE example of a better test with comments explaining why it's better
+3. Ask me questions about how I would improve my approach based on this example
+4. Challenge me to identify what edge cases I should add
+5. Guide me in writing more precise assertions"
+
+### **AI Response and Learning:**
+
+**AI**: Principles for good due date tests:
+1. **Isolate the behavior**: Test due date scoring without other factors
+2. **Control time**: Use fixed dates for predictable results
+3. **Test boundaries**: Test exact boundary conditions
+4. **Clear assertions**: Verify exact expected scores
+
+**Example better test:**
+```python
+def test_overdue_task_receives_maximum_bonus():
+    """
+    Test that overdue tasks receive the maximum due date bonus of 35 points.
+    This test isolates the due date calculation by using a task with
+    neutral priority and no other scoring factors.
+    """
+    # Arrange
+    from datetime import datetime, timedelta
+    base_date = datetime(2023, 12, 15, 12, 0, 0)
+    overdue_date = base_date - timedelta(days=1)  # Yesterday
+    
+    task = Task("Overdue Task", TaskPriority.LOW)  # LOW = 10 points
+    task.due_date = overdue_date
+    
+    # Mock datetime.now() to return our base_date
+    with patch('datetime.datetime') as mock_datetime:
+        mock_datetime.now.return_value = base_date
+        
+        # Act
+        score = calculate_task_score(task)
+    
+    # Assert
+    expected_score = 10 + 35  # Base priority + overdue bonus
+    assert score == expected_score, f"Expected {expected_score}, got {score}"
+```
+
+**AI**: How would you improve your approach based on this example?
+
+**Me**: I need to control the time for predictable testing and isolate the due date behavior from other factors.
+
+**AI**: What edge cases should you add?
+
+**Me**: I should test:
+- Due today (exactly 0 days)
+- Due in exactly 2 days
+- Due in exactly 7 days
+- Due in the future (beyond 7 days)
+- No due date set
+
+### **Comprehensive Due Date Test:**
+
+```python
+def test_due_date_scoring_boundaries():
+    """
+    Test all due date boundary conditions to ensure correct scoring.
+    Tests each due date category with controlled time.
+    """
+    from datetime import datetime, timedelta
+    from unittest.mock import patch
+    
+    base_date = datetime(2023, 12, 15, 12, 0, 0)
+    
+    test_cases = [
+        # (description, due_date_offset, expected_bonus)
+        ("overdue", -1, 35),
+        ("due today", 0, 20),
+        ("due in 1 day", 1, 15),
+        ("due in 2 days", 2, 15),
+        ("due in 3 days", 3, 10),
+        ("due in 7 days", 7, 10),
+        ("due in 8 days", 8, 0),
+        ("due in future", 30, 0),
+    ]
+    
+    for description, offset, expected_bonus in test_cases:
+        with patch('datetime.datetime') as mock_datetime:
+            mock_datetime.now.return_value = base_date
+            
+            # Arrange
+            due_date = base_date + timedelta(days=offset)
+            task = Task(f"Task {description}", TaskPriority.LOW)
+            task.due_date = due_date
+            
+            # Act
+            score = calculate_task_score(task)
+            
+            # Assert
+            base_score = 10  # LOW priority
+            expected_total = base_score + expected_bonus
+            assert score == expected_total, \
+                f"{description}: Expected {expected_total}, got {score}"
+```
+
+---
+
+## **Part 3: Test-Driven Development Practice**
+
+### **Exercise 3.1: TDD for a New Feature**
+
+### **AI Prompt Applied:**
+
+"I want to practice Test-Driven Development to add a new feature:
+Tasks assigned to the current user should get a score boost of +12.
+
+Here's the current function:
+```python
+def calculate_task_score(task):
+    # [function code]
+```
+
+Instead of writing code and tests for me, please:
+1. Ask me what I think the first test should be and why
+2. Give me feedback on my proposed test
+3. After I write the test, ask me what minimal code would make it pass
+4. Once I've implemented the code, guide me on what test to add next
+5. Help me understand when it's time to refactor vs. add new functionality"
+
+### **TDD Process and Implementation:**
+
+**AI**: What do you think the first test should be and why?
+
+**Me**: I think I should test that a task assigned to the current user gets +12 points compared to an identical task not assigned to current user.
+
+**AI**: Good approach! How would you structure that test?
+
+**Me**: I'd create two identical tasks, one with assigned_user="current_user" and one without, and verify the score difference is exactly 12.
+
+**AI**: Excellent! Write that test and let me see it.
+
+### **First Test (Failing):**
+
+```python
+def test_current_user_assignment_boost():
+    """Test that tasks assigned to current user get +12 score boost."""
+    # Arrange
+    current_user = "test_user"
+    task_assigned = Task("Assigned Task", TaskPriority.MEDIUM)
+    task_assigned.assigned_user = current_user
+    
+    task_unassigned = Task("Unassigned Task", TaskPriority.MEDIUM)
+    # No assigned_user field
+    
+    # Act
+    score_assigned = calculate_task_score(task_assigned)
+    score_unassigned = calculate_task_score(task_unassigned)
+    
+    # Assert
+    assert score_assigned == score_unassigned + 12, \
+        f"Assigned task should score 12 points more"
+```
+
+**AI**: What minimal code would make this test pass?
+
+**Me**: I need to add a check for assigned_user and add 12 to the score if it matches the current user.
+
+### **Minimal Implementation (Passing):**
+
+```python
+def calculate_task_score(task, current_user=None):
+    # ... existing code ...
+    
+    # Boost score for tasks assigned to current user
+    if current_user and hasattr(task, 'assigned_user') and task.assigned_user == current_user:
+        score += 12
+    
+    return score
+```
+
+**AI**: What test should you add next?
+
+**Me**: I should test that tasks assigned to other users don't get the boost.
+
+### **Second Test (Failing):**
+
+```python
+def test_other_user_assignment_no_boost():
+    """Test that tasks assigned to other users get no boost."""
+    # Arrange
+    current_user = "test_user"
+    other_user = "other_user"
+    
+    task_assigned_to_other = Task("Other's Task", TaskPriority.MEDIUM)
+    task_assigned_to_other.assigned_user = other_user
+    
+    task_unassigned = Task("Unassigned Task", TaskPriority.MEDIUM)
+    
+    # Act
+    score_other = calculate_task_score(task_assigned_to_other, current_user)
+    score_unassigned = calculate_task_score(task_unassigned, current_user)
+    
+    # Assert
+    assert score_other == score_unassigned, \
+        "Task assigned to other user should not get boost"
+```
+
+### **Refactored Implementation:**
+
+```python
+def calculate_task_score(task, current_user=None):
+    # ... existing code ...
+    
+    # Boost score for tasks assigned to current user
+    if (current_user and 
+        hasattr(task, 'assigned_user') and 
+        task.assigned_user == current_user):
+        score += 12
+    
+    return score
+```
+
+---
+
+### **Exercise 3.2: TDD for Bug Fix**
+
+### **AI Prompt Applied:**
+
+"I want to practice TDD to fix a bug:
+The calculation for "days since update" isn't working correctly.
+
+Here's the current function:
+```python
+def calculate_task_score(task):
+    # ... existing code ...
+    # Boost score for recently updated tasks
+    days_since_update = (datetime.now() - task.updated_at).days
+    if days_since_update < 1:
+        score += 5
+    return score
+```
+
+Please:
+1. Ask me what test I would write to reproduce the bug
+2. Help me understand if my test actually demonstrates the bug
+3. Guide me in implementing a minimal fix
+4. Ask me if there are any other tests I should add to prevent regression"
+
+### **Bug Fix TDD Process:**
+
+**AI**: What test would you write to reproduce the bug?
+
+**Me**: I think the bug might be with how days are calculated. Let me write a test that creates a task updated 12 hours ago and verifies it gets the +5 boost.
+
+**AI**: Does that test demonstrate the bug? What might be wrong?
+
+**Me**: Actually, I think the issue might be that the calculation uses datetime.now() which changes during test execution, making tests flaky.
+
+**AI**: Good insight! Write a test that demonstrates this timing issue.
+
+### **Bug Reproduction Test:**
+
+```python
+def test_recent_update_timing_issue():
+    """Test that demonstrates the timing issue with recent update calculation."""
+    from datetime import datetime, timedelta
+    from unittest.mock import patch
+    import time
+    
+    # Arrange
+    task = Task("Recent Task", TaskPriority.LOW)
+    update_time = datetime.now() - timedelta(hours=12)  # 12 hours ago
+    task.updated_at = update_time
+    
+    # Act & Assert - This test might be flaky due to timing
+    with patch('datetime.datetime') as mock_datetime:
+        # First call - 12 hours ago
+        mock_datetime.now.return_value = update_time + timedelta(hours=12)
+        score1 = calculate_task_score(task)
+        
+        # Second call - 13 hours ago (should still get boost)
+        mock_datetime.now.return_value = update_time + timedelta(hours=13)
+        score2 = calculate_task_score(task)
+    
+    # Both should get the +5 boost since they're within 24 hours
+    assert score1 == 15  # 10 (LOW) + 5 (recent)
+    assert score2 == 15  # 10 (LOW) + 5 (recent)
+```
+
+**AI**: Now implement a minimal fix.
+
+### **Bug Fix Implementation:**
+
+```python
+def calculate_task_score(task, current_user=None):
+    # ... existing code ...
+    
+    # Boost score for recently updated tasks
+    if task.updated_at:
+        time_since_update = datetime.now() - task.updated_at
+        if time_since_update.total_seconds() < 86400:  # 24 hours in seconds
+            score += 5
+    
+    return score
+```
+
+**AI**: What other tests should you add to prevent regression?
+
+**Me**: I should add tests for:
+- Exactly 24 hours ago (boundary condition)
+- 24 hours + 1 second ago (no boost)
+- Tasks with no updated_at timestamp
+
+---
+
+## **Part 4: Integration Testing**
+
+### **Exercise 4.1: Testing the Full Workflow**
+
+### **AI Prompt Applied:**
+
+"I want to create an integration test for the task priority workflow:
+
+```python
+def calculate_task_score(task):
+    # [function code]
+
+def sort_tasks_by_importance(tasks):
+    # [function code]
+
+def get_top_priority_tasks(tasks, limit=5):
+    # [function code]
+```
+
+Rather than writing the test for me, please:
+1. Ask me what scenarios an integration test should verify
+2. Guide me in designing test data that would exercise the entire workflow
+3. Help me understand what assertions would verify the correct behavior
+4. Ask me how I would structure the test to make it readable and maintainable"
+
+### **AI Conversation and Integration Test Design:**
+
+**AI**: What scenarios should an integration test verify?
+
+**Me**: It should verify that the three functions work together correctly - that scoring affects sorting which affects top tasks selection.
+
+**AI**: What test data would exercise the entire workflow?
+
+**Me**: I should create tasks with different priorities, due dates, and statuses to see how they flow through the entire system.
+
+**AI**: What assertions would verify correct behavior?
+
+**Me**: I should verify that the highest scoring tasks appear first and that the top N tasks are indeed the highest scoring ones.
+
+**AI**: How would you structure the test for readability?
+
+**Me**: I'd use descriptive test data setup, clear section comments, and focused assertions.
+
+### **Integration Test Implementation:**
+
+```python
+def test_complete_task_priority_workflow():
+    """
+    Integration test that verifies the complete task priority workflow:
+    1. Scoring calculation works correctly
+    2. Sorting respects calculated scores
+    3. Top tasks selection returns highest scoring tasks
+    """
+    from datetime import datetime, timedelta
+    from unittest.mock import patch
+    
+    # Arrange - Create realistic test data
+    base_date = datetime(2023, 12, 15, 12, 0, 0)
+    
+    tasks = [
+        # Task 1: High priority, overdue, assigned to current user
+        Task("Critical Bug Fix", TaskPriority.HIGH),
+        # Task 2: Medium priority, due today
+        Task("Team Meeting", TaskPriority.MEDIUM),
+        # Task 3: Low priority, no due date
+        Task("Documentation", TaskPriority.LOW),
+        # Task 4: Urgent priority, completed (should have negative score)
+        Task("Emergency Fix", TaskPriority.URGENT),
+        # Task 5: Medium priority, special tag
+        Task("Security Update", TaskPriority.MEDIUM),
+    ]
+    
+    # Set up specific conditions
+    tasks[0].due_date = base_date - timedelta(days=1)  # Overdue
+    tasks[0].assigned_user = "current_user"
+    tasks[0].tags = ["critical"]
+    
+    tasks[1].due_date = base_date  # Due today
+    
+    tasks[3].status = TaskStatus.DONE  # Completed
+    
+    tasks[4].tags = ["blocker"]
+    
+    # Mock current date for consistent testing
+    with patch('datetime.datetime') as mock_datetime:
+        mock_datetime.now.return_value = base_date
+        
+        # Act - Execute the complete workflow
+        sorted_tasks = sort_tasks_by_importance(tasks)
+        top_3_tasks = get_top_priority_tasks(tasks, limit=3)
+        
+        # Calculate expected scores for verification
+        expected_scores = [
+            calculate_task_score(tasks[0], "current_user"),  # Should be highest
+            calculate_task_score(tasks[4]),  # Special tag boost
+            calculate_task_score(tasks[1]),  # Due today
+            calculate_task_score(tasks[2]),  # Low priority, no due date
+            calculate_task_score(tasks[3]),  # Completed, negative score
+        ]
+    
+    # Assert - Verify workflow correctness
+    
+    # 1. Verify sorting is in descending order of scores
+    actual_scores = [calculate_task_score(task, "current_user") for task in sorted_tasks]
+    assert actual_scores == sorted(actual_scores, reverse=True), \
+        "Tasks should be sorted by score in descending order"
+    
+    # 2. Verify top tasks are actually the highest scoring
+    top_scores = actual_scores[:3]
+    expected_top_scores = sorted(expected_scores, reverse=True)[:3]
+    assert top_scores == expected_top_scores, \
+        "Top tasks should have the highest scores"
+    
+    # 3. Verify specific expected ordering
+    assert sorted_tasks[0] == tasks[0], "Critical overdue task should be first"
+    assert sorted_tasks[-1] == tasks[3], "Completed task should be last"
+    
+    # 4. Verify top tasks selection
+    assert len(top_3_tasks) == 3, "Should return exactly 3 tasks"
+    assert top_3_tasks[0] == sorted_tasks[0], "Top task should match sorted result"
+    
+    # 5. Verify workflow consistency
+    assert top_3_tasks == sorted_tasks[:3], "Top tasks should match first 3 sorted tasks"
+```
+
+---
+
+## **Discussion and Reflection**
+
+### **Complete Exercise Documentation:**
+
+#### **Test Plan Document (Part 1):**
+- Comprehensive test plan with prioritized test cases
+- Unit tests for individual functions
+- Integration tests for workflow verification
+- Edge case testing for robustness
+
+#### **Improved Unit Tests (Part 2):**
+- Clear, descriptive test names
+- Isolated behavior testing
+- Precise assertions with helpful error messages
+- Boundary condition testing
+
+#### **TDD Implementation (Part 3):**
+- New feature: Current user assignment boost (+12 points)
+- Bug fix: Improved recent update calculation
+- Test-first development approach
+- Minimal implementation followed by refactoring
+
+#### **Integration Test (Part 4):**
+- Complete workflow verification
+- Realistic test data scenarios
+- Comprehensive assertions
+- Readable and maintainable structure
+
+### **Reflection on Learning:**
+
+#### **What I Learned About Testing:**
+
+**1. Behavior vs Implementation Testing:**
+- Learned to focus on what the code does, not how it does it
+- Tests should verify observable behavior, not internal implementation details
+- This makes tests more resilient to refactoring
+
+**2. Test Isolation and Control:**
+- Importance of controlling external dependencies (like datetime)
+- Using mocks and patches for predictable testing
+- Isolating individual factors for focused testing
+
+**3. Test Structure and Readability:**
+- Clear test names that describe what's being tested
+- Arrange-Act-Assert pattern for consistency
+- Helpful assertion messages for debugging
+
+**4. Edge Case Thinking:**
+- Boundary conditions are critical (exactly 2 days, exactly 7 days)
+- Multiple factors interacting can create unexpected results
+- Negative scores and zero values need consideration
+
+#### **AI-Assisted Testing Benefits:**
+
+**1. Question-Based Learning:**
+- AI's Socratic approach helped me think more deeply
+- Questions guided me to discover edge cases I missed
+- Built confidence in my understanding before writing tests
+
+**2. Progressive Complexity:**
+- Started with simple tests and gradually added complexity
+- Each step built on previous understanding
+- Avoided overwhelm by focusing on one concept at a time
+
+**3. Alternative Perspectives:**
+- AI suggested testing approaches I hadn't considered
+- Provided examples of better test structure
+- Challenged my assumptions and made me justify my choices
+
+#### **Testing Strategies Developed:**
+
+**1. Test-Driven Development:**
+- Writing failing tests first clarifies requirements
+- Minimal implementation prevents over-engineering
+- Refactoring after tests pass improves design
+
+**2. Integration Testing:**
+- Testing complete workflows, not just individual functions
+- Realistic test data that exercises actual usage patterns
+- Verifying function interactions work correctly
+
+**3. Test Planning:**
+- Prioritizing tests by importance and risk
+- Organizing tests for maintainability
+- Considering test dependencies and order
+
+#### **Future Testing Practices:**
+
+**1. Continuous Testing:**
+- Write tests as I write code, not after
+- Run tests frequently to catch issues early
+- Maintain high test coverage for critical functionality
+
+**2. Test Quality:**
+- Focus on clear, readable tests
+- Test behavior, not implementation
+- Use descriptive names and helpful assertions
+
+**3. Comprehensive Coverage:**
+- Unit tests for individual functions
+- Integration tests for workflows
+- Edge case testing for robustness
+
+### **Key Takeaways:**
+
+1. **AI is an excellent testing mentor** - guides without giving answers
+2. **Testing is a skill that improves with practice** - start simple and build complexity
+3. **Good tests focus on behavior** - what the code does, not how it does it
+4. **Test-Driven Development clarifies requirements** - writing tests first improves design
+5. **Integration testing is crucial** - functions must work together correctly
+6. **Edge cases are where bugs hide** - boundary conditions need special attention
+
+This exercise demonstrated how AI can be a valuable partner in developing testing skills, providing guidance while encouraging independent thinking and deep understanding of testing principles.
